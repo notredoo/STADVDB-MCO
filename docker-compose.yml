@@ -12,6 +12,12 @@ services:
       - "1000:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
-
-volumes:
-  db_data:
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    container_name: my_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@pgadmin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
