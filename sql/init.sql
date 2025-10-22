@@ -60,9 +60,7 @@ CREATE TABLE dim_game (
 CREATE TABLE dim_team (
     team_id SERIAL PRIMARY KEY,
     team_name VARCHAR(255) UNIQUE NOT NULL,
-    country_id INT REFERENCES dim_country(country_id),
     total_earnings NUMERIC(15,2),
-    num_players INT,
     primary_game_id INT REFERENCES dim_game(game_id)
 );
 
@@ -70,10 +68,8 @@ CREATE TABLE dim_team (
 CREATE TABLE dim_player (
     player_id SERIAL PRIMARY KEY,
     player_name VARCHAR(255) NOT NULL,
-    country_id INT REFERENCES dim_country(country_id),
-    team_id INT REFERENCES dim_team(team_id),
+    current_handle VARCHAR(255),
     total_earnings NUMERIC(15,2),
-    num_tournaments INT,
     primary_game_id INT REFERENCES dim_game(game_id)
 );
 
@@ -103,6 +99,5 @@ CREATE TABLE fact_esports (
     game_id INT REFERENCES dim_game(game_id),
     year INT,
     total_prize_pool NUMERIC(15,2),
-    num_tournaments INT,
-    num_players INT
+    num_tournaments INT
 );
