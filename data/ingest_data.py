@@ -1,13 +1,23 @@
 import pandas as pd
 import requests
 from sqlalchemy import create_engine
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+DB_USER = os.getenv("DB_USER")         # default: postgres
+DB_PASSWORD = os.getenv("DB_PASSWORD") # default: N/A
+DB_HOST = os.getenv("DB_HOST")         # default: localhost
+DB_PORT = os.getenv("DB_PORT")         # default: 5432
+DB_NAME = os.getenv("DB_NAME")         # default: videogames_dw
 
 # --- DATABASE CONFIGURATION ---
-db_user = 'postgres'
-db_password = 'user'
-db_host = 'localhost'
-db_port = '5432'
-db_name = 'videogames_dw'
+db_user = DB_USER
+db_password = DB_PASSWORD
+db_host = DB_HOST
+db_port = DB_PORT
+db_name = DB_NAME
 
 db_string = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 engine = create_engine(db_string)
