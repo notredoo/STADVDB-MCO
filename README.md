@@ -6,6 +6,7 @@ https://drive.google.com/drive/folders/1ZnUoqlGVtOeOoGNwkP-c8dsBR7WlkXx_?usp=sha
 
 ## How to run
 
+`psql -U postgres -c "CREATE DATABASE videogames_dw;"`
 `psql -U postgres -d videogames_dw -f init.sql`
 
 NOTE: Make sure you know your postgres password
