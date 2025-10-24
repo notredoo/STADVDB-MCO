@@ -28,7 +28,7 @@ export default function Home() {
             <ReportCard title="Total Revenue by Genre">
               <GenreRollupChart />
             </ReportCard>
-            <ReportCard title="Top Playtime Games">
+            <ReportCard title="Top Playtime Games (Avg. Playtime)">
               <TopPlaytimeGames />
             </ReportCard>
           </div>

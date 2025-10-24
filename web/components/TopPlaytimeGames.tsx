@@ -193,10 +193,6 @@ export default function TopPlaytimeGames() {
     // --- Render ---
     return (
         <div className="p-4 bg-white shadow-lg rounded-lg">
-            <h2 className="text-xl font-bold mb-4" style={{ color: chartColors.text }}>
-                Top Playtime Games (Bubble Chart)
-            </h2>
-
             <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                 <div>
                     <label className="font-semibold text-sm" style={{ color: chartColors.text }}>Genre:</label>
