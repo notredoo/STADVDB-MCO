@@ -1,50 +1,69 @@
-// web/app/api/reports/available-genres/route.test.ts
-import { GET } from '../available-genres/route';
-import pool from '@/lib/db'; // Jest automatically uses the mock version
+import { GET } from './route'; // Import the handler
+import pool from '@/lib/db'; // Import DB pool to mock
 import { NextResponse } from 'next/server';
 
-// Cast the pool to any so we can access the mocked query function
-const mockPool = <any>pool;
+// Mock DB connection setup
+const mockPool = pool as jest.Mocked<typeof pool>;
+const mockQuery = mockPool.query as jest.Mock;
 
-describe('API: /available-genres', () => {
-  const mockData = {
-    rows: [
-      { genre_name: 'Action' },
-      { genre_name: 'RPG' },
-      { genre_name: 'Strategy' },
-    ],
-  };
+describe('API: /available-genres (GET Handler)', () => {
 
-  // Set the mock implementation for the single test
-  mockPool.query.mockResolvedValueOnce(mockData);
+  // Reset mocks before each test
+  beforeEach(() => {
+    mockQuery.mockClear();
+  });
 
-  test('should call the database with the correct query and return the list of genres', async () => {
-    // 1. Call the GET handler
+  // Clear all mocks after each test
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  // Test 1: Should return genre list with status 200
+  test('should call DB and return list of genres', async () => {
+    const mockData = {
+      rows: [
+        { genre_name: 'Action' },
+        { genre_name: 'RPG' },
+        { genre_name: 'Strategy' },
+      ],
+    };
+    mockQuery.mockResolvedValueOnce(mockData);
+
     const response = await GET();
 
-    // 2. Expect the query function to have been called
-    expect(mockPool.query).toHaveBeenCalledTimes(1);
-
-    // 3. Optional: Check the query content
-    const expectedQuery = expect.stringContaining('SELECT DISTINCT g.genre_name');
-    expect(mockPool.query).toHaveBeenCalledWith(expectedQuery);
-
-    // 4. Check the JSON response content
-    const data = await response.json();
+    expect(mockQuery).toHaveBeenCalledTimes(1);
+    expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('SELECT DISTINCT g.genre_name'));
     expect(response.status).toBe(200);
+
+    const data = await response.json();
     expect(data).toEqual(['Action', 'RPG', 'Strategy']);
   });
 
-  test('should return a 500 error if the database query fails', async () => {
-    // Override the successful mock for this failure test
-    mockPool.query.mockRejectedValueOnce(new Error('Test DB connection error'));
+  // Test 2: Should return 500 when DB query fails
+  test('should return 500 and error message on DB failure', async () => {
+    const dbError = new Error('Test DB connection error');
+    mockQuery.mockRejectedValueOnce(dbError);
 
-    // 1. Call the GET handler
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     const response = await GET();
+    consoleErrorSpy.mockRestore();
 
-    // 2. Check the response status and error message
+    expect(mockQuery).toHaveBeenCalledTimes(1);
     expect(response.status).toBe(500);
+
     const data = await response.json();
+    expect(data).toHaveProperty('error');
     expect(data.error).toContain('Test DB connection error');
+  });
+
+  // Test 3: Should return empty array if no data
+  test('should return empty array when no genres found', async () => {
+    mockQuery.mockResolvedValueOnce({ rows: [] });
+
+    const response = await GET();
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data).toEqual([]);
   });
 });
