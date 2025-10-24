@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Select, { StylesConfig, SingleValue } from 'react-select';
 import { ResponsiveCirclePacking } from '@nivo/circle-packing';
-import { chartTheme, chartColors } from '@/components/chartTheme'; // ✅ Import theme
+import { chartTheme, chartColors } from '@/components/chartTheme';
 
 const ALL_OPTION: SelectOption = { value: 'ALL', label: 'All' };
 
@@ -190,6 +190,47 @@ export default function TopPlaytimeGames() {
     const nivoData = transformToNivoData(data);
     const hasData = data.length > 0;
 
+    const ManualLegend = () => (
+        <div
+            className="flex justify-center items-center space-x-6"
+            style={{
+                color: chartColors.text,
+                marginTop: 15,
+                position: 'relative',
+            }}
+        >
+            {/* Item 1: Genre */}
+            <div className="flex items-center">
+                <div
+                    style={{
+                        width: 16,
+                        height: 16,
+                        backgroundColor: chartColors.secondary,
+                        borderRadius: '50%',
+                        marginRight: 8,
+                        border: `1px solid ${chartColors.grid}`
+                    }}
+                />
+                <span>Genre</span>
+            </div>
+
+            {/* Item 2: Game */}
+            <div className="flex items-center">
+                <div
+                    style={{
+                        width: 16,
+                        height: 16,
+                        backgroundColor: chartColors.accent,
+                        borderRadius: '50%',
+                        marginRight: 8,
+                        border: `1px solid ${chartColors.grid}`
+                    }}
+                />
+                <span>Game</span>
+            </div>
+        </div>
+    );
+
     // --- Render ---
     return (
         <div className="p-4 bg-white shadow-lg rounded-lg">
@@ -214,24 +255,21 @@ export default function TopPlaytimeGames() {
                 )}
 
                 {!isLoading && !error && hasData && (
-                    <ResponsiveCirclePacking
-                        data={nivoData}
-                        id="name"
-                        value="loc"
-                        enableLabel
-                        padding={4}
-                        margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                        colors={[chartColors.primary, chartColors.secondary, chartColors.accent]}
-                        borderWidth={2}
-                        borderColor={{ from: 'color', modifiers: [['darker', 0.6]] }}
-                        label={getLabel}
-                        labelsFilter={(label) => label.node.depth === 2}
-                        tooltip={({ id, value, depth }) => {
-                            const playtime = formatPlaytime(value);
-                            const genre = data.find(d => d.game_name === id)?.genre_name || id;
-
-                            return (
-                                <div style={{
+                    <>
+                        <ResponsiveCirclePacking
+                            data={nivoData}
+                            id="name"
+                            value="loc"
+                            enableLabel
+                            padding={4}
+                            margin={{ top: 60, right: 20, bottom: 20, left: 20 }}
+                            colors={[chartColors.primary, chartColors.secondary, chartColors.accent]}
+                            borderWidth={2}
+                            borderColor={{ from: 'color', modifiers: [['darker', 0.6]] }}
+                            label={getLabel}
+                            labelsFilter={(label) => label.node.depth === 2}
+                            tooltip={({ id, value, depth }) => {
+                                const tooltipStyle = {
                                     padding: '10px 15px',
                                     background: chartTheme.tooltip.background,
                                     color: chartTheme.tooltip.color,
@@ -239,16 +277,41 @@ export default function TopPlaytimeGames() {
                                     borderRadius: '6px',
                                     boxShadow: '0 4px 8px rgba(0,0,0,0.15)',
                                     fontSize: chartTheme.fontSize,
-                                }}>
-                                    <strong style={{ color: chartColors.primary }}>{id}</strong>
-                                    <br />
-                                    <span>Genre: </span><strong>{genre}</strong>
-                                    <br />
-                                    <span>Avg Playtime: </span><strong>{playtime}</strong>
-                                </div>
-                            );
-                        }}
-                    />
+                                };
+
+                                if (depth < 2) {
+                                    if (id === "Games") { // Big blue circle
+                                        return (
+                                            <div style={tooltipStyle}>
+                                                <strong style={{ color: chartColors.primary }}>{id}</strong>
+                                            </div>
+                                        );
+                                    }
+
+                                    return ( // Genres
+                                        <div style={tooltipStyle}>
+                                            <strong >Genre: </strong><strong style={{ color: chartColors.primary }}>{id}</strong>
+                                        </div>
+                                    );
+                                }
+
+                                // Individual Games
+                                const playtime = formatPlaytime(value);
+                                const genre = data.find(d => d.game_name === id)?.genre_name || id;
+
+                                return (
+                                    <div style={{ ...tooltipStyle, width: '120px' }}>
+                                        <strong style={{ color: chartColors.accent }}>{id}</strong>
+                                        <br />
+                                        <strong >Genre: </strong><strong style={{ color: chartColors.primary }}>{genre}</strong>
+                                        <br />
+                                        <span>Avg Playtime: </span><strong><br />{playtime}</strong>
+                                    </div>
+                                );
+                            }} />
+
+                        <ManualLegend />
+                    </>
                 )}
             </div>
         </div>

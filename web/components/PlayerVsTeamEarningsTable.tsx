@@ -81,7 +81,6 @@ export default function PlayerVsTeamEarningsChartFixedTS() {
             style={{
                 height: 650,
                 width: '100%',
-                fontFamily: chartTheme.fontFamily,
                 backgroundColor: chartColors.background,
                 padding: '20px',
                 borderRadius: '12px',
@@ -113,7 +112,7 @@ export default function PlayerVsTeamEarningsChartFixedTS() {
                 innerPadding={2}
                 valueScale={{ type: 'linear' }}
                 indexScale={{ type: 'band', round: true }}
-                colors={[chartColors.primary, chartColors.secondary]}
+                colors={[chartColors.primary, chartColors.accent]}
                 borderColor={{ from: 'color', modifiers: [['darker', 1.2]] }}
                 axisTop={null}
                 axisRight={null}
@@ -164,7 +163,7 @@ export default function PlayerVsTeamEarningsChartFixedTS() {
                                 : '(∞%)'
                             : `(${((diff / baseValue) * 100).toFixed(1)}%)`;
 
-                    const diffColor = diff >= 0 ? chartColors.secondary : '#DC2626';
+                    const diffColor = diff >= 0 ? '#22C55E' : '#DC2626';
 
                     const formatDifference = (value: number) => {
                         const formatted = formatEarningsForTooltip(Math.abs(value));
@@ -176,7 +175,6 @@ export default function PlayerVsTeamEarningsChartFixedTS() {
                         <div
                             style={{
                                 background: chartColors.tooltipBg,
-                                color: chartColors.tooltipText,
                                 padding: '10px 14px',
                                 borderRadius: '8px',
                                 boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
@@ -188,15 +186,15 @@ export default function PlayerVsTeamEarningsChartFixedTS() {
                                 {game_name}
                             </strong>
                             <div style={{ marginBottom: 4 }}>
-                                <span style={{ color: chartColors.primary }}>Player:</span>{' '}
+                                <strong style={{ color: chartColors.primary }}>Player:</strong>{' '}
                                 {formatEarningsForTooltip(total_player_earnings)}
                             </div>
                             <div style={{ marginBottom: 4 }}>
-                                <span style={{ color: chartColors.secondary }}>Team:</span>{' '}
+                                <strong style={{ color: chartColors.accent }}>Team:</strong>{' '}
                                 {formatEarningsForTooltip(total_team_earnings)}
                             </div>
                             <div>
-                                {label}{' '}
+                                {label}<br />
                                 <strong style={{ color: diffColor }}>
                                     {formatDifference(diff)} {percentage}
                                 </strong>
@@ -225,14 +223,12 @@ export default function PlayerVsTeamEarningsChartFixedTS() {
                             {
                                 id: 'total_team_earnings',
                                 label: 'Team Earnings',
-                                color: chartColors.secondary,
+                                color: chartColors.accent,
                             },
                         ],
                     },
                 ]}
                 theme={{
-                    textColor: chartColors.text,
-                    fontSize: chartTheme.fontSize,
                     axis: {
                         ticks: { text: { fill: chartColors.text } },
                         legend: { text: { fill: chartColors.text } },
@@ -241,7 +237,6 @@ export default function PlayerVsTeamEarningsChartFixedTS() {
                     tooltip: {
                         container: {
                             background: chartColors.tooltipBg,
-                            color: chartColors.tooltipText,
                             borderRadius: '6px',
                         },
                     },

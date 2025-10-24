@@ -40,8 +40,7 @@ export async function GET() {
       OR COALESCE(te.total_team_earnings, 0) > 0
     ORDER BY
       total_player_earnings DESC,
-      total_team_earnings DESC
-    LIMIT 50; -- Limit results for better UI
+      total_team_earnings DESC;
   `;
 
   try {

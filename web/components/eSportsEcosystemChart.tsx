@@ -16,7 +16,6 @@ interface EcosystemData {
     total_ecosystem_value: number;
 }
 
-// ✅ Custom Tooltip with consistent theme styling
 const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
     if (active && payload && payload.length) {
         const totalValue = payload.reduce((sum: number, entry) => sum + (entry.value as number), 0);
@@ -152,7 +151,6 @@ export default function EsportsEcosystemChart() {
                         wrapperStyle={{ top: 0, left: 0, right: 0, height: 40 }}
                     />
 
-                    {/* ✅ Use consistent chart colors */}
                     <Bar dataKey="tournament_prizes" name="Tournament Prizes" stackId="a" fill={chartColors.primary} />
                     <Bar dataKey="player_earnings" name="Player Earnings" stackId="a" fill={chartColors.secondary} />
                     <Bar dataKey="team_earnings" name="Team Earnings" stackId="a" fill={chartColors.accent} />

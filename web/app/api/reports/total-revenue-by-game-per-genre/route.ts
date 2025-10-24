@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         SUM(fs.revenue_estimate) IS NOT NULL AND SUM(fs.revenue_estimate) > 0
       ORDER BY
         total_revenue DESC
-      LIMIT 50; -- Limit results for better performance and UI
+      LIMIT 50;
     `;
 
     const { rows } = await pool.query(sqlQuery, [genre]);
