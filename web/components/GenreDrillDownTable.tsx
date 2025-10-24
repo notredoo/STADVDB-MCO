@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Select, { StylesConfig, SingleValue } from 'react-select';
 import { formatCurrency } from '@/components/CurrencyFormatter';
+import { chartColors, chartTheme } from '@/components/chartTheme';
 
 interface DrilldownData {
     game_name: string;
@@ -18,21 +19,39 @@ const customSelectStyles: StylesConfig<GenreOption, false> = {
     control: (provided) => ({
         ...provided,
         fontFamily: 'Inter, sans-serif',
-        borderColor: '#D1D5DB',
+        borderColor: chartColors.grid,
         boxShadow: 'none',
-        '&:hover': { borderColor: '#9CA3AF' },
+        '&:hover': { borderColor: chartColors.primary },
     }),
     option: (provided, state) => ({
         ...provided,
         fontFamily: 'Inter, sans-serif',
-        backgroundColor: state.isSelected ? '#4F46E5' : state.isFocused ? '#E0E7FF' : 'white',
-        color: state.isSelected ? 'white' : state.isFocused ? '#1F2937' : '#374151',
-        '&:active': { backgroundColor: '#4338CA', color: 'white' },
-        paddingTop: '8px', paddingBottom: '8px',
+        backgroundColor: state.isSelected
+            ? chartColors.primary
+            : state.isFocused
+                ? '#EFF6FF'
+                : chartColors.background,
+        color: state.isSelected ? '#ffffff' : chartColors.text,
+        '&:active': { backgroundColor: chartColors.secondary, color: '#ffffff' },
+        paddingTop: '8px',
+        paddingBottom: '8px',
     }),
-    placeholder: (provided) => ({ ...provided, fontFamily: 'Inter, sans-serif', color: '#6B7280' }),
-    singleValue: (provided) => ({ ...provided, fontFamily: 'Inter, sans-serif', color: '#1F2937' }),
-    menu: (provided) => ({ ...provided, marginTop: '4px', borderRadius: '6px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }),
+    placeholder: (provided) => ({
+        ...provided,
+        color: '#6B7280',
+        fontFamily: 'Inter, sans-serif',
+    }),
+    singleValue: (provided) => ({
+        ...provided,
+        color: chartColors.text,
+        fontFamily: 'Inter, sans-serif',
+    }),
+    menu: (provided) => ({
+        ...provided,
+        backgroundColor: chartColors.background,
+        borderRadius: '6px',
+        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+    }),
 };
 
 export default function GenreDrilldownTable() {
@@ -52,12 +71,9 @@ export default function GenreDrilldownTable() {
                 const genresData: string[] = await response.json();
                 const genreOptions = genresData.map(genre => ({ value: genre, label: genre }));
                 setAvailableGenres(genreOptions);
-                if (genreOptions.length > 0) {
-                    setSelectedGenre(genreOptions[0]);
-                }
-            } catch (e) {
-                console.error("Failed to fetch available genres:", e);
-                setError("Could not load genre filter.");
+                if (genreOptions.length > 0) setSelectedGenre(genreOptions[0]);
+            } catch {
+                setError('Could not load genre filter.');
             } finally {
                 setIsGenresLoading(false);
             }
@@ -68,28 +84,21 @@ export default function GenreDrilldownTable() {
     useEffect(() => {
         if (!selectedGenre) {
             setData([]);
-            setIsLoading(false);
             return;
         }
 
         async function fetchData() {
             setIsLoading(true);
             setError(null);
-
             try {
-                if (selectedGenre) {
-                    const apiUrl = `/api/reports/total-revenue-by-game-per-genre?genre=${encodeURIComponent(selectedGenre.value)}`;
-
-                    const response = await fetch(apiUrl);
-                    if (!response.ok) throw new Error(`Failed to fetch drilldown: ${response.statusText}`);
-                    const apiData = await response.json();
-
-                    const parsedData = apiData.map((row: any) => ({
-                        ...row,
-                        total_revenue: Number(row.total_revenue),
-                    }));
-                    setData(parsedData);
-                }
+                const response = await fetch(`/api/reports/total-revenue-by-game-per-genre?genre=${encodeURIComponent(selectedGenre.value)}`);
+                if (!response.ok) throw new Error(`Failed to fetch drilldown: ${response.statusText}`);
+                const apiData = await response.json();
+                const parsedData = apiData.map((row: any) => ({
+                    ...row,
+                    total_revenue: Number(row.total_revenue),
+                }));
+                setData(parsedData);
             } catch (e) {
                 setError(e instanceof Error ? e.message : 'An unknown error occurred');
             } finally {
@@ -100,19 +109,32 @@ export default function GenreDrilldownTable() {
         fetchData();
     }, [selectedGenre]);
 
-    const handleGenreChange = (selectedOption: SingleValue<GenreOption>) => {
-        setSelectedGenre(selectedOption);
-    };
+    const handleGenreChange = (selectedOption: SingleValue<GenreOption>) => setSelectedGenre(selectedOption);
 
     return (
-        <div>
+        <div
+            className="p-4 rounded-lg border shadow-sm"
+            style={{
+                backgroundColor: chartColors.background,
+                borderColor: chartColors.grid,
+                color: chartColors.text,
+                fontFamily: 'Inter, sans-serif',
+                fontSize: chartTheme.fontSize,
+            }}
+        >
             {/* --- Filter Dropdown --- */}
             <div className="mb-4">
-                <label htmlFor="genre-select" className="font-semibold text-gray-700 block mb-2">Select Genre:</label>
+                <label
+                    htmlFor="genre-select"
+                    className="font-semibold block mb-2"
+                    style={{ color: chartColors.text }}
+                >
+                    Select Genre:
+                </label>
                 {isGenresLoading ? (
-                    <p className="text-gray-500 text-sm">Loading genres...</p>
+                    <p style={{ color: chartColors.text }}>Loading genres...</p>
                 ) : (
-                    <Select<GenreOption, false>
+                    <Select
                         instanceId="genre-select"
                         options={availableGenres}
                         value={selectedGenre}
@@ -124,56 +146,44 @@ export default function GenreDrilldownTable() {
                 )}
             </div>
 
-            {/* --- Loading State for Table --- */}
-            {isLoading && (
-                <div className="flex items-center justify-center h-48">
-                    <p className="text-gray-500">Loading game data for {selectedGenre?.label}...</p>
-                </div>
-            )}
-
-            {/* --- Error State for Table --- */}
-            {error && !isLoading && (
-                <div className="flex items-center justify-center h-48 text-red-500">
-                    <p>Error loading table: {error}</p>
-                </div>
-            )}
-
-            {/* --- Initial / No Selection State --- */}
-            {!isLoading && !error && !selectedGenre && (
-                <div className="flex items-center justify-center h-48">
-                    <p className="text-gray-400">Please select a genre above.</p>
-                </div>
-            )}
-
-            {/* --- No Data State for Table --- */}
-            {!isLoading && !error && selectedGenre && data.length === 0 && (
-                <div className="flex items-center justify-center h-48">
-                    <p className="text-gray-500">No game data found for {selectedGenre.label}.</p>
-                </div>
-            )}
-
-
-            {/* --- Data Table --- */}
+            {/* --- Scrollable Table --- */}
             {!isLoading && !error && selectedGenre && data.length > 0 && (
-                <div className="overflow-x-auto max-h-96">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-100 sticky top-0">
+                <div
+                    className="overflow-y-auto overflow-x-auto rounded-lg"
+                    style={{
+                        border: `1px solid ${chartColors.grid}`,
+                        maxHeight: '24rem', // scroll area restored
+                    }}
+                >
+                    <table className="min-w-full divide-y" style={{ borderColor: chartColors.grid }}>
+                        <thead
+                            style={{
+                                backgroundColor: '#F9FAFB',
+                                color: chartColors.text,
+                                position: 'sticky',
+                                top: 0,
+                                zIndex: 10,
+                            }}
+                        >
                             <tr>
-                                <th scope="col" className="py-3.5 px-4 text-left text-sm font-semibold text-gray-900">
+                                <th className="py-3.5 px-4 text-left text-sm font-semibold">
                                     Game Name
                                 </th>
-                                <th scope="col" className="py-3.5 px-4 text-right text-sm font-semibold text-gray-900">
+                                <th className="py-3.5 px-4 text-right text-sm font-semibold">
                                     Total Revenue
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200 bg-white">
+                        <tbody className="divide-y" style={{ borderColor: chartColors.grid }}>
                             {data.map((row) => (
                                 <tr key={row.game_name}>
-                                    <td className="whitespace-nowrap py-4 px-4 text-sm font-medium text-gray-900">
+                                    <td className="py-4 px-4 text-sm font-medium">
                                         {row.game_name}
                                     </td>
-                                    <td className="whitespace-nowrap py-4 px-4 text-right text-sm font-semibold text-gray-700">
+                                    <td
+                                        className="py-4 px-4 text-right text-sm font-semibold"
+                                        style={{ color: chartColors.primary }}
+                                    >
                                         {formatCurrency(row.total_revenue)}
                                     </td>
                                 </tr>
@@ -182,7 +192,24 @@ export default function GenreDrilldownTable() {
                     </table>
                 </div>
             )}
+
+            {/* --- States --- */}
+            {isLoading && (
+                <p className="text-center py-6" style={{ color: chartColors.text }}>
+                    Loading game data for {selectedGenre?.label}...
+                </p>
+            )}
+            {error && !isLoading && (
+                <p className="text-center py-6 text-red-500">Error loading table: {error}</p>
+            )}
+            {!isLoading && !error && !selectedGenre && (
+                <p className="text-center py-6 text-gray-500">Please select a genre above.</p>
+            )}
+            {!isLoading && !error && selectedGenre && data.length === 0 && (
+                <p className="text-center py-6 text-gray-500">
+                    No game data found for {selectedGenre.label}.
+                </p>
+            )}
         </div>
     );
 }
-

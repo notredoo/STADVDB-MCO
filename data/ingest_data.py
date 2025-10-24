@@ -80,14 +80,12 @@ def ingest_multiple_csvs_to_staging(file_paths, table_name, db_engine):
 # --- MAIN EXECUTION ---
 
 if __name__ == "__main__":
-    print("--- Starting Day 1: Raw Data Ingestion ---")
-
     countries_csv = 'country-and-continent-codes-list.csv'
     players_csv = 'highest_earning_players.csv'
     teams_csv = 'highest_earning_teams.csv'
-    
+
     ingest_csv_to_staging(rawg_csv_path, 'stg_rawg_games', engine)
-    
+
     print("\n--- Ingesting eSports Data ---")
     ingest_csv_to_staging(countries_csv, 'stg_countries', engine)
     ingest_csv_to_staging(players_csv, 'stg_esports_players', engine)
@@ -97,5 +95,3 @@ if __name__ == "__main__":
     ingest_steamspy_api_to_staging(steamspy_api_url, 'stg_steamspy_games', engine)
 
     print("\n--- All ingestion tasks complete. ---")
-
-    

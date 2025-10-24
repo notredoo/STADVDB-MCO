@@ -1,9 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, TooltipProps } from 'recharts';
+import {
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, TooltipProps
+} from 'recharts';
 import { ValueType, NameType } from 'recharts/types/component/DefaultTooltipContent';
 import { formatCurrency } from '@/components/CurrencyFormatter';
+import { chartTheme, chartColors } from '@/components/chartTheme';
+
 interface GenreRevenue {
     genre_name: string;
     total_revenue: number;
@@ -19,17 +23,17 @@ export default function GenreRollupChart() {
             setIsLoading(true);
             try {
                 const response = await fetch('/api/reports/total-revenue-by-genre');
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch: ${response.statusText}`);
-                }
+                if (!response.ok) throw new Error(`Failed to fetch: ${response.statusText}`);
                 const apiData = await response.json();
 
-                const formattedData = apiData.map((item: any) => ({
-                    ...item,
-                    total_revenue: Number(item.total_revenue)
-                }));
+                const sortedData = apiData
+                    .map((item: any) => ({
+                        ...item,
+                        total_revenue: Number(item.total_revenue)
+                    }))
+                    .sort((a: GenreRevenue, b: GenreRevenue) => b.total_revenue - a.total_revenue);
 
-                setData(formattedData);
+                setData(sortedData);
             } catch (e) {
                 setError(e instanceof Error ? e.message : 'An unknown error occurred');
             } finally {
@@ -42,9 +46,20 @@ export default function GenreRollupChart() {
     const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
         if (active && payload && payload.length) {
             return (
-                <div className="bg-white p-2 border border-gray-300 rounded shadow-lg">
-                    <p className="font-bold text-gray-800">{`${label}`}</p>
-                    <p className="text-indigo-600">{`Revenue: ${formatCurrency(payload[0].value as number)}`}</p>
+                <div
+                    style={{
+                        background: chartTheme.tooltip.background,
+                        color: chartTheme.tooltip.color,
+                        border: `1px solid ${chartTheme.tooltip.border}`,
+                        padding: '8px 10px',
+                        borderRadius: 6,
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                    }}
+                >
+                    <p style={{ fontWeight: 600, marginBottom: 4 }}>{label}</p>
+                    <p style={{ color: chartColors.primary }}>
+                        Revenue: {formatCurrency(payload[0].value as number)}
+                    </p>
                 </div>
             );
         }
@@ -67,50 +82,43 @@ export default function GenreRollupChart() {
         );
     }
 
+    const dynamicHeight = Math.max(300, data.length * 45 + 60);
+    const yAxisWidth = 120;
 
     return (
-        <div style={{ width: '100%', height: 350 }}>
+        <div style={{ width: '100%', height: dynamicHeight }}>
             <ResponsiveContainer>
                 <BarChart
+                    layout="vertical"
                     data={data}
-                    margin={{
-                        top: 5,
-                        right: 0,
-                        left: 20,
-                        bottom: 70,
-                    }}
+                    margin={{ top: 20, right: 20, left: 5, bottom: 5 }}
                 >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-
-                    {/* Angled X-Axis Labels */}
-                    <XAxis
-                        dataKey="genre_name"
-                        stroke="#333"
-                        interval={0}
-                        angle={-45}
-                        textAnchor="end"
-                        height={80}
-                        tick={{ fontSize: 12 }}
-                    />
-
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridColor} />
                     <YAxis
-                        stroke="#333"
-                        tickFormatter={formatCurrency}
-                        tick={{ fontSize: 12 }}
+                        dataKey="genre_name"
+                        type="category"
+                        stroke={chartTheme.axisColor}
+                        tick={{ fontSize: chartTheme.fontSize, fill: chartTheme.axisColor }}
+                        width={yAxisWidth}
+                        padding={{ top: 0, bottom: 20 }}
                     />
-
+                    <XAxis
+                        dataKey="total_revenue"
+                        type="number"
+                        stroke={chartTheme.axisColor}
+                        tick={{ fontSize: chartTheme.fontSize, fill: chartTheme.axisColor }}
+                        tickFormatter={formatCurrency}
+                    />
                     <Tooltip content={<CustomTooltip />} />
-
                     <Legend />
                     <Bar
                         dataKey="total_revenue"
                         name="Total Revenue"
-                        fill="#4F46E5"
-                        radius={[4, 4, 0, 0]}
+                        fill={chartColors.primary}
+                        radius={[4, 4, 4, 4]}
                     />
                 </BarChart>
             </ResponsiveContainer>
         </div>
     );
 }
-

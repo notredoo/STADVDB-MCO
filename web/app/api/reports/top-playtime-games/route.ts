@@ -11,6 +11,25 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Genre and platform parameters are required' }, { status: 400 });
     }
 
+    // --- Dynamic Query Construction ---
+    let whereClauses = [];
+    let queryParams: string[] = [];
+    let paramIndex = 1;
+
+    // 1. Handle Genre filter
+    if (genre !== 'ALL') {
+      whereClauses.push(`g.genre_name = $${paramIndex++}`);
+      queryParams.push(genre);
+    }
+
+    // 2. Handle Platform filter
+    if (platform !== 'ALL') {
+      whereClauses.push(`p.platform_name = $${paramIndex++}`);
+      queryParams.push(platform);
+    }
+
+    const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
     const sqlQuery = `
       SELECT
         gm.game_name,
@@ -22,33 +41,29 @@ export async function GET(request: NextRequest) {
         JOIN dim_game gm ON fs.game_id = gm.game_id
         JOIN dim_genre g ON gm.genre_id = g.genre_id
         JOIN dim_platform p ON gm.platform_id = p.platform_id
-      WHERE
-        g.genre_name = $1
-        AND p.platform_name = $2
+      ${whereClause}
       GROUP BY
         gm.game_name,
         g.genre_name,
         p.platform_name
-      -- Filter out null or zero playtime after grouping
       HAVING AVG(fs.avg_playtime) IS NOT NULL AND AVG(fs.avg_playtime) > 0
       ORDER BY
         average_playtime DESC
-      LIMIT 10;
+      LIMIT 50;
     `;
 
-    const { rows } = await pool.query(sqlQuery, [genre, platform]);
+    const { rows } = await pool.query(sqlQuery, queryParams);
 
-     const data = rows.map(row => {
-        const newRow: { [key: string]: any } = {};
-        for (const key in row) {
-          const value = row[key];
-          newRow[key] = (typeof value === 'object' && value !== null && typeof value.toFixed === 'function')
-            ? parseFloat(value.toFixed(2))
-            : value;
-        }
-        return newRow;
-      });
-
+    const data = rows.map(row => {
+      const newRow: { [key: string]: any } = {};
+      for (const key in row) {
+        const value = row[key];
+        newRow[key] = (typeof value === 'object' && value !== null && typeof value.toFixed === 'function')
+          ? parseFloat(value.toFixed(2))
+          : value;
+      }
+      return newRow;
+    });
 
     return NextResponse.json(data);
 
