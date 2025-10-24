@@ -1,23 +1,13 @@
 import pandas as pd
 import requests
 from sqlalchemy import create_engine
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-
-DB_USER = os.getenv("DB_USER")         # default: postgres
-DB_PASSWORD = os.getenv("DB_PASSWORD") # default: N/A
-DB_HOST = os.getenv("DB_HOST")         # default: localhost
-DB_PORT = os.getenv("DB_PORT")         # default: 5432
-DB_NAME = os.getenv("DB_NAME")         # default: videogames_dw
 
 # --- DATABASE CONFIGURATION ---
-db_user = DB_USER
-db_password = DB_PASSWORD
-db_host = DB_HOST
-db_port = DB_PORT
-db_name = DB_NAME
+db_user = 'postgres'
+db_password = 'user'
+db_host = 'localhost'
+db_port = '5432'
+db_name = 'videogames_dw'
 
 db_string = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 engine = create_engine(db_string)
@@ -80,12 +70,14 @@ def ingest_multiple_csvs_to_staging(file_paths, table_name, db_engine):
 # --- MAIN EXECUTION ---
 
 if __name__ == "__main__":
+    print("--- Starting Day 1: Raw Data Ingestion ---")
+
     countries_csv = 'country-and-continent-codes-list.csv'
     players_csv = 'highest_earning_players.csv'
     teams_csv = 'highest_earning_teams.csv'
-
+    
     ingest_csv_to_staging(rawg_csv_path, 'stg_rawg_games', engine)
-
+    
     print("\n--- Ingesting eSports Data ---")
     ingest_csv_to_staging(countries_csv, 'stg_countries', engine)
     ingest_csv_to_staging(players_csv, 'stg_esports_players', engine)
@@ -95,3 +87,5 @@ if __name__ == "__main__":
     ingest_steamspy_api_to_staging(steamspy_api_url, 'stg_steamspy_games', engine)
 
     print("\n--- All ingestion tasks complete. ---")
+
+    

@@ -1,22 +1,12 @@
 import pandas as pd
 from sqlalchemy import create_engine, text
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-
-DB_USER = os.getenv("DB_USER")         # default: postgres
-DB_PASSWORD = os.getenv("DB_PASSWORD") # default: N/A
-DB_HOST = os.getenv("DB_HOST")         # default: localhost
-DB_PORT = os.getenv("DB_PORT")         # default: 5432
-DB_NAME = os.getenv("DB_NAME")         # default: videogames_dw
 
 # --- DATABASE CONFIGURATION ---
-db_user = DB_USER
-db_password = DB_PASSWORD
-db_host = DB_HOST
-db_port = DB_PORT
-db_name = DB_NAME
+db_user = 'postgres'
+db_password = 'user' # IMPORTANT: Change for other users
+db_host = 'localhost'
+db_port = '5432'
+db_name = 'videogames_dw'
 
 db_string = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 engine = create_engine(db_string)
@@ -36,7 +26,7 @@ if __name__ == "__main__":
         print(f"Notice: Could not wipe tables. Reason: {e}")
 
     # --- 2. POPULATE DIMENSIONS ---
-
+    
     # --- TRANSFORM AND LOAD dim_genre ---
     try:
         print("Populating dim_genre...")
@@ -225,41 +215,25 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"ERROR: Failed to populate fact_sales. Reason: {e}")
 
-    # --- TRANSFORM AND LOAD fact_esports (FIXED) ---
+    # --- TRANSFORM AND LOAD fact_esports ---
     try:
         print("Populating the final fact table: fact_esports...")
         stg_df = pd.read_sql("SELECT * FROM stg_esports_teams", engine)
-        
-        # We only need 'game_id' and 'game_name' to link the tables
-        dim_game_df = pd.read_sql("SELECT game_id, game_name FROM dim_game", engine)
-        
-        # --- THIS IS THE FIX ---
-        # Use left_on='Game' (the actual column name string)
-        # NOT left_on='"Game"' (which includes quotes)
+        dim_game_df = pd.read_sql("SELECT game_id, game_name, EXTRACT(YEAR FROM release_date) as year FROM dim_game", engine)
         esports_df = pd.merge(stg_df, dim_game_df, left_on='Game', right_on='game_name', how='inner')
-        # --- END OF FIX ---
-
         esports_df['total_prize_pool'] = pd.to_numeric(esports_df['TotalUSDPrize'], errors='coerce')
-
-        # Group ONLY by 'game_id'. Remove the 'year'.
-        fact_esports_agg = esports_df.groupby(['game_id']).agg(
+        fact_esports_agg = esports_df.groupby(['game_id', 'year']).agg(
             total_prize_pool=('total_prize_pool', 'sum'),
             num_tournaments=('TeamId', 'count')
         ).reset_index()
-
-        # Create the new DataFrame without the 'year' column
         fact_esports_df = pd.DataFrame({
             'game_id': fact_esports_agg['game_id'],
+            'year': fact_esports_agg['year'],
             'total_prize_pool': fact_esports_agg['total_prize_pool'],
             'num_tournaments': fact_esports_agg['num_tournaments']
         })
-
         fact_esports_df.dropna(axis=1, how='all', inplace=True)
-        
-        # IMPORTANT: Use 'replace' to drop the old table and create this new one,
-        # since the schema (columns) has changed.
-        fact_esports_df.to_sql('fact_esports', con=engine, if_exists='replace', index=False)
-        
+        fact_esports_df.to_sql('fact_esports', con=engine, if_exists='append', index=False)
         print(f"Successfully loaded {len(fact_esports_df)} aggregated records into fact_esports.")
     except Exception as e:
         print(f"ERROR: Failed to populate fact_esports. Reason: {e}")

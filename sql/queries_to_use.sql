@@ -9,6 +9,8 @@ SELECT * FROM dim_team;
 SELECT * FROM fact_esports;
 SELECT * FROM fact_sales;
 
+SELECT * FROM game_conformance_map; --game_conformance_map is for testing to populate a table/dim
+
 SELECT * FROM stg_countries;
 SELECT * FROM stg_esports_players;
 SELECT * FROM stg_esports_teams;
