@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
         gm.game_name,
         g.genre_name,
         p.platform_name,
-        AVG(fs.avg_playtime) AS average_playtime
+        fs.avg_playtime AS average_playtime
       FROM
         fact_sales fs
         JOIN dim_game gm ON fs.game_id = gm.game_id
@@ -45,8 +45,9 @@ export async function GET(request: NextRequest) {
       GROUP BY
         gm.game_name,
         g.genre_name,
-        p.platform_name
-      HAVING AVG(fs.avg_playtime) IS NOT NULL AND AVG(fs.avg_playtime) > 0
+        p.platform_name,
+        fs.avg_playtime
+      HAVING fs.avg_playtime IS NOT NULL AND fs.avg_playtime > 0
       ORDER BY
         average_playtime DESC
       LIMIT 50;

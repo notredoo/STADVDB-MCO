@@ -51,6 +51,7 @@ const customSelectStyles: StylesConfig<GenreOption, false> = {
         backgroundColor: chartColors.background,
         borderRadius: '6px',
         boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+        zIndex: 20,
     }),
 };
 
@@ -91,7 +92,7 @@ export default function GenreDrilldownTable() {
             setIsLoading(true);
             setError(null);
             try {
-                const response = await fetch(`/api/reports/total-revenue-by-game-per-genre?genre=${encodeURIComponent(selectedGenre.value)}`);
+                const response = await fetch(`/api/reports/total-revenue-by-game-per-genre?genre=${encodeURIComponent(selectedGenre!.value)}`);
                 if (!response.ok) throw new Error(`Failed to fetch drilldown: ${response.statusText}`);
                 const apiData = await response.json();
                 const parsedData = apiData.map((row: any) => ({
@@ -152,7 +153,8 @@ export default function GenreDrilldownTable() {
                     className="overflow-y-auto overflow-x-auto rounded-lg"
                     style={{
                         border: `1px solid ${chartColors.grid}`,
-                        maxHeight: '24rem', // scroll area restored
+                        minHeight: '32rem',
+                        maxHeight: '32rem',
                     }}
                 >
                     <table className="min-w-full divide-y" style={{ borderColor: chartColors.grid }}>

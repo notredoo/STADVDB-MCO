@@ -1,9 +1,3 @@
--- =======================================================
--- STAGING TABLES for Raw Data Ingestion
--- Author: Ryu Kisen (ETL Lead)
--- Description: Tables to hold raw, untouched data from sources.
--- =======================================================
--- Staging table for the RAWG Games Dataset CSV
 CREATE TABLE stg_rawg_games (
     id TEXT,
     slug TEXT,
