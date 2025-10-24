@@ -1,10 +1,3 @@
--- =======================================================
--- DATA WAREHOUSE SCHEMA: Video Game Analytics Warehouse
--- Author: Hans Sescon (Data Warehouse Lead)
--- Description: Star Schema integrating SteamSpy, Game Sales,
--- and eSports Prize Pool datasets
--- =======================================================
-
 DROP TABLE IF EXISTS fact_sales, fact_esports, dim_game, dim_genre, dim_platform,
                      dim_date, dim_country, dim_region, dim_team, dim_player CASCADE;
 
