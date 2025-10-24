@@ -11,20 +11,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Genre and platform parameters are required' }, { status: 400 });
     }
 
-<<<<<<< HEAD
-    // Dynamic WHERE clauses
-    let whereClauses: string[] = ['fs.avg_playtime IS NOT NULL', 'fs.avg_playtime > 0'];
-    let queryParams: string[] = [];
-    let paramIndex = 1;
-
-=======
     // --- Dynamic Query Construction ---
     let whereClauses = [];
     let queryParams: string[] = [];
     let paramIndex = 1;
 
     // 1. Handle Genre filter
->>>>>>> 652e97a4419a68ad0fd51e001c8f9789822e8a1b
     if (genre !== 'ALL') {
       whereClauses.push(`g.genre_name = $${paramIndex++}`);
       queryParams.push(genre);
